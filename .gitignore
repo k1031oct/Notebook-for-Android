@@ -1,0 +1,31 @@
+# Android Specific
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Firebase
+google-services.json
+
+# Orbit Portal
+ORBIT.md
+
+# Log files
+*.log
+build_log.txt
+build_log_v2.txt
+log_dump.txt
+
+# Generated UI dump
+ui_dump.xml
