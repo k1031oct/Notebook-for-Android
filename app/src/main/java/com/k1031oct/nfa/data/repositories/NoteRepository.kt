@@ -11,27 +11,33 @@ import javax.inject.Singleton
 
 @Singleton
 class NoteRepository @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val authRepository: AuthRepository
 ) {
-    private val notesCollection = firestore.collection("notes")
+    private fun getNotesCollection() = authRepository.getUserId()?.let { uid ->
+        firestore.collection("users").document(uid).collection("notes")
+    }
 
     fun getNotes(): Flow<List<Note>> {
-        return notesCollection.orderBy("timestamp").snapshots().map { snapshot ->
+        val collection = getNotesCollection() ?: return kotlinx.coroutines.flow.flowOf(emptyList())
+        return collection.orderBy("timestamp").snapshots().map { snapshot ->
             snapshot.toObjects(Note::class.java)
         }
     }
 
     suspend fun saveNote(note: Note) {
+        val collection = getNotesCollection() ?: throw Exception("User not logged in")
         if (note.id.isEmpty()) {
-            val docRef = notesCollection.document()
+            val docRef = collection.document()
             val newNote = note.copy(id = docRef.id)
             docRef.set(newNote).await()
         } else {
-            notesCollection.document(note.id).set(note).await()
+            collection.document(note.id).set(note).await()
         }
     }
 
     suspend fun deleteNote(noteId: String) {
-        notesCollection.document(noteId).delete().await()
+        val collection = getNotesCollection() ?: throw Exception("User not logged in")
+        collection.document(noteId).delete().await()
     }
 }

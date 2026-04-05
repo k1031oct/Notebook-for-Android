@@ -24,20 +24,26 @@ import javax.inject.Provider;
 public final class NoteRepository_Factory implements Factory<NoteRepository> {
   private final Provider<FirebaseFirestore> firestoreProvider;
 
-  public NoteRepository_Factory(Provider<FirebaseFirestore> firestoreProvider) {
+  private final Provider<AuthRepository> authRepositoryProvider;
+
+  public NoteRepository_Factory(Provider<FirebaseFirestore> firestoreProvider,
+      Provider<AuthRepository> authRepositoryProvider) {
     this.firestoreProvider = firestoreProvider;
+    this.authRepositoryProvider = authRepositoryProvider;
   }
 
   @Override
   public NoteRepository get() {
-    return newInstance(firestoreProvider.get());
+    return newInstance(firestoreProvider.get(), authRepositoryProvider.get());
   }
 
-  public static NoteRepository_Factory create(Provider<FirebaseFirestore> firestoreProvider) {
-    return new NoteRepository_Factory(firestoreProvider);
+  public static NoteRepository_Factory create(Provider<FirebaseFirestore> firestoreProvider,
+      Provider<AuthRepository> authRepositoryProvider) {
+    return new NoteRepository_Factory(firestoreProvider, authRepositoryProvider);
   }
 
-  public static NoteRepository newInstance(FirebaseFirestore firestore) {
-    return new NoteRepository(firestore);
+  public static NoteRepository newInstance(FirebaseFirestore firestore,
+      AuthRepository authRepository) {
+    return new NoteRepository(firestore, authRepository);
   }
 }

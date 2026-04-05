@@ -9,11 +9,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.k1031oct.nfa.data.repositories.AuthRepository
 import android.util.Log
 
 @HiltViewModel
 class NoteViewModel @Inject constructor(
-    private val repository: NoteRepository
+    private val repository: NoteRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NoteUiState())
@@ -23,7 +25,7 @@ class NoteViewModel @Inject constructor(
         loadNotes()
     }
 
-    private fun loadNotes() {
+    fun loadNotes() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             repository.getNotes()
@@ -55,11 +57,50 @@ class NoteViewModel @Inject constructor(
 
     fun changeRefill(refillType: String) {
         _uiState.update { it.copy(activeRefill = refillType) }
+        Log.d("ORBIT", "Refill changed to: $refillType")
     }
 
     fun showSection(section: String) {
         _uiState.update { it.copy(activeSection = section) }
         Log.d("ORBIT", "Section switched to: $section")
+    }
+
+    fun selectDate(date: String) {
+        _uiState.update { it.copy(selectedDate = date) }
+    }
+
+    fun toggleNoteCompletion(note: Note) {
+        // Optimistic UI Update: Firestoreの結果を待たずにUIを変更
+        val updatedNotes = _uiState.value.notes.map {
+            if (it.id == note.id) it.copy(isCompleted = !it.isCompleted) else it
+        }
+        _uiState.update { it.copy(notes = updatedNotes) }
+
+        viewModelScope.launch {
+            try {
+                repository.saveNote(note.copy(isCompleted = !note.isCompleted))
+            } catch (e: Exception) {
+                // 失敗時は再読み込みしてロールバック
+                Log.e("ORBIT", "Failed to sync status to Firestore: ${e.message}", e)
+                loadNotes()
+            }
+        }
+    }
+
+    fun signInWithGoogle(idToken: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                authRepository.signInWithGoogle(idToken)
+                onSuccess()
+                loadNotes()
+            } catch (e: Exception) {
+                Log.e("ORBIT", "Google Sign-In failed", e)
+            }
+        }
+    }
+
+    fun signOut() {
+        authRepository.signOut()
     }
 
     private var calculatorInput = ""

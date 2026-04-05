@@ -5,5 +5,7 @@ data class Note(
     val title: String = "",
     val content: String = "",
     val refillType: String = "standard", // "grid", "lines", "todo", etc.
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val date: String? = null,
+    val isCompleted: Boolean = false
 )

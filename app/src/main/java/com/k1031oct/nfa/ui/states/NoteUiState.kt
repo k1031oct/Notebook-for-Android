@@ -10,5 +10,6 @@ data class NoteUiState(
     val isEditing: Boolean = false,
     val activeRefill: String = "standard",
     val activeSection: String = "memo", // "memo", "calculator", "calendar", etc.
-    val calculatorDisplay: String = "0"
+    val calculatorDisplay: String = "0",
+    val selectedDate: String = "2026-04-05"
 )

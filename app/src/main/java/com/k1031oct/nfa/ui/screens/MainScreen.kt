@@ -12,8 +12,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,9 +39,11 @@ fun MainScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Notebook for Android", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { /* Open menu */ }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                actions = {
+                    IconButton(onClick = { 
+                        viewModel.signOut()
+                    }) {
+                        Icon(Icons.Default.Menu, contentDescription = "Sign Out")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -61,8 +63,7 @@ fun MainScreen(
         containerColor = Color(0xFFF5F5F5),
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
-                modifier = Modifier.navigationBarsPadding()
+                containerColor = Color.White
             ) {
                 NavigationBarItem(
                     selected = uiState.activeSection == "memo",
@@ -73,13 +74,13 @@ fun MainScreen(
                 NavigationBarItem(
                     selected = uiState.activeSection == "calculator",
                     onClick = { viewModel.showSection("calculator") },
-                    icon = { Icon(Icons.Default.Calculate, contentDescription = "Calculator") },
+                    icon = { Icon(Icons.Default.Edit, contentDescription = "Calculator") },
                     label = { Text("Calc") }
                 )
                 NavigationBarItem(
                     selected = uiState.activeSection == "calendar",
                     onClick = { viewModel.showSection("calendar") },
-                    icon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Calendar") },
+                    icon = { Icon(Icons.Default.Settings, contentDescription = "Calendar") },
                     label = { Text("Plan") }
                 )
             }
@@ -96,17 +97,18 @@ fun MainScreen(
                         )
 
                         // Main Content with Refill Effect
-                        Box(modifier = Modifier.fillMaxSize()) {
+                        Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                             // Grid overlay for Grid Refill
                             if (uiState.activeRefill == "grid") {
                                 GridBackground()
                             }
                             
-                            NoteList(
+                    NoteList(
                                 notes = uiState.notes,
                                 activeRefill = uiState.activeRefill,
                                 onNoteClick = { viewModel.selectNote(it) },
-                                onDeleteClick = { viewModel.deleteNote(it.id) }
+                                onDeleteClick = { viewModel.deleteNote(it.id) },
+                                onToggleComplete = { viewModel.toggleNoteCompletion(it) }
                             )
                         }
                     }
@@ -117,11 +119,29 @@ fun MainScreen(
                         onAction = { viewModel.onCalculatorAction(it) }
                     )
                 }
+                "calendar" -> {
+                    CalendarScreen(viewModel = viewModel)
+                }
                 else -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Under Construction: ${uiState.activeSection}")
+                        Text("Section: ${uiState.activeSection}")
                     }
                 }
+            }
+        }
+
+        // Editor Overlay
+        if (uiState.isEditing && uiState.selectedNote != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+            ) {
+                EditorScreen(
+                    note = uiState.selectedNote!!,
+                    viewModel = viewModel,
+                    onBack = { viewModel.selectNote(null) }
+                )
             }
         }
     }
@@ -131,19 +151,21 @@ fun MainScreen(
 fun GridBackground() {
     Canvas(modifier = Modifier.fillMaxSize()) {
         val gridSize = 30.dp.toPx()
-        val color = Color.LightGray.copy(alpha = 0.3f)
+        val color = Color.LightGray.copy(alpha = 0.5f)
         for (x in 0..size.width.toInt() step gridSize.toInt()) {
             drawLine(
                 color = color,
                 start = androidx.compose.ui.geometry.Offset(x.toFloat(), 0f),
-                end = androidx.compose.ui.geometry.Offset(x.toFloat(), size.height)
+                end = androidx.compose.ui.geometry.Offset(x.toFloat(), size.height),
+                strokeWidth = 1f
             )
         }
         for (y in 0..size.height.toInt() step gridSize.toInt()) {
             drawLine(
                 color = color,
                 start = androidx.compose.ui.geometry.Offset(0f, y.toFloat()),
-                end = androidx.compose.ui.geometry.Offset(size.width, y.toFloat())
+                end = androidx.compose.ui.geometry.Offset(size.width, y.toFloat()),
+                strokeWidth = 1f
             )
         }
     }
@@ -195,14 +217,15 @@ fun NoteList(
     notes: List<Note>,
     activeRefill: String,
     onNoteClick: (Note) -> Unit,
-    onDeleteClick: (Note) -> Unit
+    onDeleteClick: (Note) -> Unit,
+    onToggleComplete: (Note) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
     ) {
         items(notes) { note ->
-            NoteCard(note, activeRefill, onNoteClick, onDeleteClick)
+            NoteCard(note, activeRefill, onNoteClick, onDeleteClick, onToggleComplete)
             Spacer(modifier = Modifier.height(12.dp))
         }
     }
@@ -213,7 +236,8 @@ fun NoteCard(
     note: Note,
     activeRefill: String,
     onNoteClick: (Note) -> Unit,
-    onDeleteClick: (Note) -> Unit
+    onDeleteClick: (Note) -> Unit,
+    onToggleComplete: (Note) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -228,8 +252,11 @@ fun NoteCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (activeRefill == "todo") {
-                Checkbox(checked = false, onCheckedChange = null)
-                Spacer(modifier = Modifier.width(8.dp))
+                Checkbox(
+                    checked = note.isCompleted,
+                    onCheckedChange = { onToggleComplete(note) },
+                    modifier = Modifier.padding(end = 8.dp)
+                )
             }
             
             Column(modifier = Modifier.weight(1f).fillMaxHeight()) {

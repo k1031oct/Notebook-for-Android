@@ -8,9 +8,12 @@ import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.k1031oct.nfa.core.di.AppModule;
+import com.k1031oct.nfa.core.di.AppModule_ProvideFirebaseAuthFactory;
 import com.k1031oct.nfa.core.di.AppModule_ProvideFirestoreFactory;
+import com.k1031oct.nfa.data.repositories.AuthRepository;
 import com.k1031oct.nfa.data.repositories.NoteRepository;
 import com.k1031oct.nfa.ui.viewmodels.NoteViewModel;
 import com.k1031oct.nfa.ui.viewmodels.NoteViewModel_HiltModules_KeyModule_ProvideFactory;
@@ -452,7 +455,7 @@ public final class DaggerNotebookApplication_HiltComponents_SingletonC {
       public T get() {
         switch (id) {
           case 0: // com.k1031oct.nfa.ui.viewmodels.NoteViewModel 
-          return (T) new NoteViewModel(singletonCImpl.noteRepositoryProvider.get());
+          return (T) new NoteViewModel(singletonCImpl.noteRepositoryProvider.get(), singletonCImpl.authRepositoryProvider.get());
 
           default: throw new AssertionError(id);
         }
@@ -533,6 +536,10 @@ public final class DaggerNotebookApplication_HiltComponents_SingletonC {
 
     private Provider<FirebaseFirestore> provideFirestoreProvider;
 
+    private Provider<FirebaseAuth> provideFirebaseAuthProvider;
+
+    private Provider<AuthRepository> authRepositoryProvider;
+
     private Provider<NoteRepository> noteRepositoryProvider;
 
     private SingletonCImpl() {
@@ -544,6 +551,8 @@ public final class DaggerNotebookApplication_HiltComponents_SingletonC {
     @SuppressWarnings("unchecked")
     private void initialize() {
       this.provideFirestoreProvider = DoubleCheck.provider(new SwitchingProvider<FirebaseFirestore>(singletonCImpl, 1));
+      this.provideFirebaseAuthProvider = DoubleCheck.provider(new SwitchingProvider<FirebaseAuth>(singletonCImpl, 3));
+      this.authRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 2));
       this.noteRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<NoteRepository>(singletonCImpl, 0));
     }
 
@@ -581,10 +590,16 @@ public final class DaggerNotebookApplication_HiltComponents_SingletonC {
       public T get() {
         switch (id) {
           case 0: // com.k1031oct.nfa.data.repositories.NoteRepository 
-          return (T) new NoteRepository(singletonCImpl.provideFirestoreProvider.get());
+          return (T) new NoteRepository(singletonCImpl.provideFirestoreProvider.get(), singletonCImpl.authRepositoryProvider.get());
 
           case 1: // com.google.firebase.firestore.FirebaseFirestore 
           return (T) AppModule_ProvideFirestoreFactory.provideFirestore();
+
+          case 2: // com.k1031oct.nfa.data.repositories.AuthRepository 
+          return (T) new AuthRepository(singletonCImpl.provideFirebaseAuthProvider.get());
+
+          case 3: // com.google.firebase.auth.FirebaseAuth 
+          return (T) AppModule_ProvideFirebaseAuthFactory.provideFirebaseAuth();
 
           default: throw new AssertionError(id);
         }
