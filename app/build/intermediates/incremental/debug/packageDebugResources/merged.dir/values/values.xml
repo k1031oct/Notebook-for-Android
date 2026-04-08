@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <array name="com_google_android_gms_fonts_certs">
+        <item>@array/com_google_android_gms_fonts_certs_dev</item>
+    </array>
+    <array name="com_google_android_gms_fonts_certs_dev">
+        <item>
+            MIIEqDCCApCgAwIBAgIJANuay8Wdu/RzMA0GCSqGSIb3DQEBDAUAMFsxCzAJBgNVBAYTAlVTMQsw
+            CQYDVQQIDAJDQTEUMBIGA1UEBwwLTW91bnRhaW4gVmlldzEQMA4GA1UECgwHR29vZ2xlMRQwEgYD
+            VQQLDAtBbmRyb2lkIE1TRDAeFw0xNjA4MDUxNjMyMjFaFw00NDAxMDIxNjMyMjFaMFsxCzAJBgNV
+            BAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwLTW91bnRhaW4gVmlldzEQMA4GA1UECgwHR29v
+            Z2xlMRQwEgYDVQQLDAtBbmRyb2lkIE1TRDCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIB
+            AL9p9D+Y77Fm80lIu/qlyB+9T68gDqJcI5jT9y3fO/c3v2+N3S5fV/5j2fX9P7C6P9C7R6u/X7f9
+            ...
+        </item>
+    </array>
     <color name="black">#FF000000</color>
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>

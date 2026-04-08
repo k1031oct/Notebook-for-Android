@@ -23,8 +23,8 @@ ORBIT.md
 
 # Log files
 *.log
-build_log.txt
-build_log_v2.txt
+build_log*.txt
+build_output*.txt
 log_dump.txt
 
 # Generated UI dump
